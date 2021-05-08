@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="../public/favicon.png"/>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/style.css">
+
+  <!-- load bootstrap via CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> <!-- load jquery via CDN -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script src="/js/tour_utils.js"></script> 
+
+  <title>ShuruTuru</title>
+  
+  <script>
+
+    let data; //Global variable stors the json data
+
+    //This function triggered when user click on the 'guide details' button.
+    //It displays the guide name, email and phone number.
+    const guide_details = e => {
+
+      for (var key in data) {
+        if (data.hasOwnProperty(key)) 
+        {
+          if(key+"guide" == e.target.id)
+          {
+            if($(`#${key}guidedetails`).attr("isOpen") == "true")
+            {
+              $(`#${key}guidedetails`).html("")
+              $(`#${key}guidedetails`).attr("isOpen", false)
+            }
+            else
+            {
+              $(`#${key}guidedetails`).attr("isOpen", true)
+              $(`#${key}guidedetails`).append(`<h5> Guide: ${data[key].guide.name} </h5>`)
+              $(`#${key}guidedetails`).append(`<h5> Email: ${data[key].guide.email} </h5>`)
+              $(`#${key}guidedetails`).append(`<h5> Phone: ${data[key].guide.phone} </h5>`)
+            }
+          }
+        }
+      }
+    }
+    //This function triggered when user click on the 'path details' button.
+    //It displays a list of sites existing in the current tour path.
+    const path_details = e => {
+      for (var key in data) {
+        if (data.hasOwnProperty(key)) 
+        {
+          if(key+"path" == e.target.id)
+          {
+            if($(`#${key}pathdetails`).attr("isOpen") == "true")
+            {
+              $(`#${key}pathdetails`).html('')
+              $(`#${key}pathdetails`).attr("isOpen", false)
+            }
+            else
+            {
+              $(`#${key}add_site`).remove()
+              $(`#${key}pathdetails`).attr("isOpen", true)
+              if(!data[key].path)
+              {
+                $(`#${key}pathdetails`).append($('<Button/>', {id: key+"add_site", text: "Add Site", click: add_site, class: "btn btn-success block-button"}))
+                return;
+              }
+              for(let j = 0 ; j < data[key].path.length ; j++)
+              {
+                $(`#${key}pathdetails`).append(`<h5> Name: ${data[key].path[j].name}, Country: ${data[key].path[j].country}</h5>`)  
+                $(`#${key}pathdetails`).append($('<Button/>', {id: key+"="+data[key].path[j].name , type: 'submit', text: 'delete site', click: delete_site, class: "btn btn-warning block-button"}))
+              }
+              $(`#${key}pathdetails`).append($("<br>"))
+              $(`#${key}pathdetails`).append($('<Button/>', {id: key+"add_site", text: "Add Site", click: add_site, class: "btn btn-success block-button"}))
+            }
+          }
+        }
+      }
+    }
+    //This function triggered by the add_site function down below.
+    //It sends to the server an ajax resuest and add a new site.    
+    const done_site = e => {
+
+      var id = e.target.id.slice(0,-3);
+
+      let name = $(`#${id}name`).val()
+      let country = $(`#${id}country`).val()
+      let bool = false
+
+      if(name == "" || country == "")
+      {
+        alert('Please fill all fields')
+        return
+      }
+      for (var key in data) {
+        if(data.hasOwnProperty(key)) 
+        {
+          if(key == id)
+          {
+            if(!data[key].path)
+            {
+              $.ajax({
+                type: "PUT",
+                url: "/tours",
+                contentType: 'application/json',
+                data: JSON.stringify({
+                  "tour_name": key,
+                  "start_date": data[key].start_date,
+                  "duration": data[key].duration,
+                  "cost": data[key].cost,
+                  "guide" : data[key].guide,
+                  "path" : [{"name" : name, "country" : country}]
+                }),
+                processData: false,            
+                encode: true,
+                success: result => {
+                  location.href = "/list";
+                },
+                error: function (err) {
+                  console.log("err", err);
+                }
+              });                
+            }
+            else
+            {
+              data[key].path.forEach(element => {
+                if(element.name == name)
+                {
+                  alert("Site already exist")
+                  bool = true
+                }
+              });
+              if(!bool)
+              {
+                data[key].path.push({"name" : name, "country" : country})
+                $.ajax({
+                  type: "PUT",
+                  url: "/tours",
+                  contentType: 'application/json',
+                  data: JSON.stringify({
+                    "tour_name": key,
+                    "start_date": data[key].start_date,
+                    "duration": data[key].duration,
+                    "cost": data[key].cost,
+                    "guide" : data[key].guide,
+                    "path" : data[key].path
+                  }),
+                  processData: false,            
+                  encode: true,
+                  success: result => {
+                    location.href = "/list";
+                  },
+                  error: function (err) {
+                    console.log("err", err);
+                  }
+                });  
+              }  
+            }
+          }
+        }
+      }  
+    }
+    //This function triggered when user click on the 'Add site' button.
+    //It send the date (name and country) to the done_site function, and then it will add that to the json file.
+    const add_site = e => {
+ 
+    var id = e.target.id.slice(0,-8);
+    
+    if($(`#${id}name`).attr("isOpen") != undefined){
+
+      if($(`#${id}name`).attr('isOpen') == 'false'){      
+        $(`#${id}pathdetails`).append($('<input/>', {id:id+"name", type: 'text', placeholder: 'Name', class: "form-control",  isOpen:false}));
+        $(`#${id}pathdetails`).append($('<input/>', {id:id+"country", type: 'text', placeholder: 'Country', class: "form-control"}));
+        $(`#${id}pathdetails`).append($('<Button/>', {id:id+"btn", text: 'Done', click: done_site, class: "btn btn-primary"}));
+        $(`#${id}name`).attr('isOpen',true);
+      }
+      
+      else{
+        $(`#${id}name`).remove();
+        $(`#${id}country`).remove();
+        $(`#${id}btn`).remove();
+        $(`#${id}name`).attr('isOpen',false);
+      } 
+    }
+    else{
+      $(`#${id}pathdetails`).append($('<input/>', {id:id+"name", type: 'text', placeholder: 'Name', class: "form-control",  isOpen:false}));
+      $(`#${id}pathdetails`).append($('<input/>', {id:id+"country", type: 'text', placeholder: 'Country', class: "form-control"}));
+      $(`#${id}pathdetails`).append($('<Button/>', {id:id+"btn", text: 'Done', click: done_site, class: "btn btn-primary"}));
+      $(`#${id}name`).attr('isOpen',true);
+    }
+   
+    }
+    //This function triggered when user click on the 'Delete site' button.
+    //It delete the specific site that his own button clicked.
+    const delete_site = e => {
+
+      let res = e.target.id.split('=')
+      let id = res[0]
+      let name = res[1]
+
+      $.ajax({
+        type: "DELETE",
+        url: "/sites/"+id,
+        contentType: 'application/json',
+        data: JSON.stringify({
+          "name": name,
+        }),
+        success: result => {
+          location.href = '/list'
+        },
+        error: function (err) {
+          console.log("err", err);
+        }
+      });
+    }
+    //This function triggered when user click on the 'Edit tour' button.
+    //It display to the user a form contains the current tour details, the user can edit the details and submit the changes.
+    const edit_tour = e => {
+      let start_date
+      let duration
+      let cost
+      let g_name
+      let g_email
+      let g_phone
+    
+      for (var key in data) 
+      {
+        if (data.hasOwnProperty(key)) 
+        {
+          if(e.target.id == key)
+          {
+            start_date = data[key].start_date;
+            duration = data[key].duration;
+            cost = data[key].cost;
+            g_name = data[key].guide.name;
+            g_email = data[key].guide.email;
+            g_phone = data[key].guide.phone;
+          }
+        }
+      }
+      $("#div3").html('')
+      let div2 = $('<div>').attr("id", "div2");
+      div2.attr("class", "col-sm-6 col-sm-offset-3");
+
+      $("body").append($('<Button/>', {text: 'Back', onclick: "location.href = '\list';" , class: "btn btn-warning back"}))
+
+      div2.append('<h1>Edit tour</h1>');
+
+      let form = $('<form></form>');
+      form.attr("id", "edit_tour_form")
+      form.attr("name", "edit_form")
+      form.attr("method", "PUT")
+
+      let temp1 = $('<div id="name-group" class="form-group">');
+      temp1.append('<label for="ID">ID</label>'); 
+      temp1.append(`<input type="text" value = ${e.target.id} class="form-control" name="ID" id="ID" disabled>`); 
+      form.append(temp1)
+        
+      let temp2 = $('<div id="name-group" class="form-group">');
+      temp2.append('<label for="StartingDate">Starting date</label>'); 
+      if(start_date != undefined)      
+        temp2.append(`<input type="date" value = ${start_date} class="form-control" name="StartingDate" id="StartingDate" required>`); 
+
+      else
+        temp2.append(`<input type="date" value = "" class="form-control" name="StartingDate" id="StartingDate" required>`);       
+      form.append(temp2)
+      
+      let temp3 = $('<div id="name-group" class="form-group">'); 
+      temp3.append('<label for="Duration">Duration</label>'); 
+      if(duration != undefined)
+        temp3.append(`<input type="number" value = ${duration} class="form-control" name="Duration" id="Duration" min="1" required>`); 
+      else
+        temp3.append(`<input type="number" value = "" class="form-control" name="Duration" id="Duration" min="1" required>`); 
+      form.append(temp3) 
+
+      let temp4 = $('<div id="name-group" class="form-group">');
+      temp4.append('<label for="Cost">Cost</label>'); 
+      if(cost != undefined)
+        temp4.append(`<input type="number" min = '0' value = ${cost} class="form-control" name="Cost" id="Cost" required>`); 
+      else
+        temp4.append(`<input type="number" min = '0' value = "" class="form-control" name="Cost" id="Cost" required>`); 
+      form.append(temp4) 
+
+      let temp5 = $('<div id="guide-group" class="form-group" style="margin: 5%;">'); 
+      temp5.append('<h3>Guide Details</h3>'); 
+      temp5.append('<br>'); 
+      temp5.append('<br>'); 
+
+      temp5.append('<label for="guideName">Guide name</label>'); 
+      if(g_name != undefined)
+        temp5.append(`<input type="text" value = ${g_name} id = "guideName" class="form-control" name="guideName" required>`); 
+      else
+        temp5.append(`<input type="text" value = "" id = "guideName" class="form-control" name="guideName" required>`); 
+
+      temp5.append('<label for="guideEmail">Guide email</label>');  
+      if(g_email != undefined)
+        temp5.append(`<input type="email" value = ${g_email} id = "guideEmail" class="form-control" name="guideEmail" required>`); 
+      else
+        temp5.append(`<input type="email" value = ${g_email} id = "guideEmail" class="form-control" name="guideEmail" required>`); 
+      
+      temp5.append('<label for="guidePhone">Guide phone</label>'); 
+      if(g_phone != undefined)
+        temp5.append(`<input type="number" value = ${g_phone} id = "guidePhone" class="form-control" name="guidePhone" required>`); 
+      else
+        temp5.append(`<input type="number" value = ${g_phone} id = "guidePhone" class="form-control" name="guidePhone" required>`); 
+      form.append(temp5)
+
+      div2.append(form);
+      
+      div2.append($('<Button/>', {id: e.target.id+"Submit", text: 'Submit', click: edit_submit, class: "btn btn-success submit"}))
+     
+      $("#div1").replaceWith(div2)
+    }
+
+    //This function triggered by the 'edit_tour function'.
+    //It gets the data and send it to the server to upate the new tour's details
+    const edit_submit = e =>
+    {
+      let start_date = $('#StartingDate').val()
+      let duration = parseInt($('#Duration').val())
+      let cost = parseInt($('#Cost').val())
+      let g_name = $('#guideName').val()
+      let g_email = $('#guideEmail').val()
+      let g_phone = $('#guidePhone').val()   
+      let id = e.target.id.slice(0,-6);
+      
+      if(cost < 0 || duration < 1 || g_phone < 0)
+        alert("Cost, duration or guide phone is invalid ");
+      
+      else if(!g_email.includes('@'))
+        alert("Email address is invalid")
+
+      else
+      {
+        $.ajax({
+          type: 'PUT',
+          url: "/tours/"+id,
+          contentType: 'application/json',
+          data: JSON.stringify({
+            "tour_name" : id,
+            "start_date": start_date,
+            "duration": duration,
+            "cost": cost,
+            "guide" : {
+              "name" : g_name,
+              "email" : g_email,
+              "phone" : g_phone
+            }
+          }),
+          success: result => {
+            location.href = '/list';
+          },
+          error: function (err) {
+            console.log("err", err);
+          }
+        });      
+      }
+    }
+    //This function triggered when user click on the 'Delete tour' button.
+    //It delete the current tour that his own button clicked.   
+    const delete_tour = e => {
+      let id = e.target.id.slice(0,-6);
+
+      $.ajax({
+        type: 'DELETE',
+        url: "/tours/"+id,
+        success: result => {
+          loading_data(result)
+        },
+        error: function (err) {
+          console.log("err", err);
+        }
+      });
+    }
+    //This function triggered when the DOM finished load itself.
+    //It displays to the user the all data stored on the json file, as a list of tours.   
+    const loading_data = data => {
+      $('#div1').html('')
+      $('#div1').append($('<Button class = "btn btn-success block-button"> Add Tour </Button>').attr("onclick", "window.location.href='add_tour';"))
+      $('#div1').append($('<hr>'))
+      
+      for (var key in data) {
+        if (data.hasOwnProperty(key)) 
+        {
+          $("#div1").append(`<h3> Tour name: </h3> ${key}`);
+          $("#div1").append($('<Button/>', {id: key, text: "Edit Tour", click: edit_tour, class: "btn btn-secondary"}));
+          $("#div1").append($('<Button/>', {id: key+"delete", text: "Delete Tour", click: delete_tour, class: "btn btn-danger"}));
+          $('#div1').append($('<br>'))
+          
+          if(data[key].start_date != undefined)
+            $("#div1").append(`<h4> Start date: </h4> ${data[key].start_date}`);
+            
+          else
+            $("#div1").append(`<h4> Start date: </h4> ${""}`);
+
+          $('#div1').append($('<br>'))
+
+          if(data[key].duration != undefined)
+            $("#div1").append(`<h4> Duration: </h4> ${data[key].duration} days`);
+
+          else
+            $("#div1").append(`<h4> Duration: </h4> ${""}`);
+
+          $('#div1').append($('<br>'))
+
+          if(data[key].cost != undefined)      
+            $("#div1").append(`<h4> Tour cost: </h4> ₪ ${data[key].cost}`);
+
+          else
+            $("#div1").append(`<h4> Tour cost: </h4> ${""}`);
+
+          $('#div1').append($('<br>'))
+      
+          $("#div1").append($('<Button/>', {id: key+"guide", text: "Guide Details", click: guide_details, class: "btn btn-info"}));
+          $("#div1").append(`<div id = ${key}guidedetails isOpen = ${false}></div>`)
+        
+          $("#div1").append($('<Button/>', {id: key+"path", text: "Tour Path", click: path_details, class: "btn btn-primary"}));
+          $("#div1").append(`<div id = ${key}pathdetails isOpen = ${false}></div>`)
+    
+          $("#div1").append($("<hr>"))
+        }
+      }
+      
+      $('#div1').append($('<Button class = "btn btn-success"> Add Tour </Button>').attr("onclick", "window.location.href='add_tour';"))
+    }
+
+    //This function triggered when user click on the 'Sort by' select tag.
+    //It opens 4 options to the user, and sort the list by user's choice.   
+    const sort_select = id =>{
+
+      let choice = $(`#${id}`).val()
+      let sortOrder = $("#sortOrder").is(":checked")    //true if checked
+
+      $.ajax({
+        url: "/tours",
+        contentType: 'application/json',
+        data: JSON.stringify({
+          "choice": choice,
+          "sortOrder": sortOrder
+        }),
+        success: result => {
+          data = result
+          loading_data(result);
+        },
+        error: function (err) {
+          console.log("err", err);
+        }
+      });
+    }
+
+    $(document).ready(function () {
+      
+      let choice = "Tour name"
+      let sortOrder = false
+
+      $.ajax({
+        url: "/tours",
+        data: JSON.stringify({
+          "choice": choice,
+          "sortOrder": sortOrder
+        }),
+        success: result => {
+          data = result
+          loading_data(result);
+        },
+        error: function (err) {
+          console.log("err", err);
+        }
+      });
+    });
+  </script>
+</head>
+
+<body class = "gradient-custom">
+
+  <div id = "div3">
+
+    <h1 class="display-1">Welcome to ShuruTuru</h1>
+    <label class = "sort" for="tours">Sort by:</label>
+  
+    <select name="tours" id="SelectTours" onchange = "sort_select(id)">
+      <option id="OptionName">Tour name</option>
+      <option id="OptionDate">Start date</option>
+      <option id="OptionDuration">Duration</option>
+      <option id="OptionCost">Tour cost</option>
+    </select><br>
+    <input type="checkbox" id="sortOrder" name = "sortOrder" onchange = "sort_select('SelectTours')">
+    <label class = "sort" for="sortOrder"> Descending order </label><br>
+
+  </div>
+
+  <div id="div1" class="col-lg-4">
+
+  </div>
+  
+</body>
+
+</html>

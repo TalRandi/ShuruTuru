@@ -1,0 +1,36 @@
+{
+  "Africa": {
+    "tour_name": "Africa",
+    "start_date": "2021-05-11",
+    "duration": 57,
+    "cost": 6666,
+    "guide": {
+      "name": "Moshe",
+      "email": "zzz@gmail.com",
+      "phone": "0543533456"
+    },
+    "path": []
+  },
+  "Africa1": {
+    "tour_name": "Africa1",
+    "start_date": "2025-02-13",
+    "duration": 6,
+    "cost": 3000,
+    "guide": {
+      "name": "Meni",
+      "email": "tal@gmail.com",
+      "phone": "0543533456"
+    }
+  },
+  "Asia": {
+    "tour_name": "Asia",
+    "start_date": "2021-06-11",
+    "duration": 60,
+    "cost": 8940,
+    "guide": {
+      "name": "Tal",
+      "email": "zzz@gmail.com",
+      "phone": "0543533456"
+    }
+  }
+}

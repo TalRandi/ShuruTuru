@@ -1,0 +1,97 @@
+#div1, #div2, #div3{
+    margin: auto;
+    width: 40%;
+    left: 30%;
+    padding: 10px;
+}
+#div3{
+    margin-right: 30%;    
+}
+body{
+    margin: 2%;
+    background-color: rgb(187, 228, 212);
+}
+h1{
+    font-family: 'Lobster', cursive;
+    color: #0b4e37;
+    margin-bottom: 5%;
+    font-weight: bold;
+    font-size: 4.6rem;
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.3),
+      0 0 80px rgba(255, 255, 255, 0.2),
+      0 -1px 15px rgb(58, 218, 0), 
+      0 1px 1px rgb(255, 253, 253), 
+      0 2px 2px rgb(0, 0, 0);
+}
+h3, h4, h5{
+    font-weight: bold;
+}
+h3, h4{
+    display: inline;
+}
+h5{
+    color: blue;
+}
+button{
+    margin: 1% 2%;
+}
+.block-button{
+    margin: 2% 0;
+    display: block;
+}
+hr{
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    border-top: 5px dotted rgba(2, 1, 1, 0.521);
+}
+.submit{
+    position: absolute;
+    margin: auto;
+    font-size: 2rem;
+    height: 5rem;
+    width: 10rem;
+    align-items: center;
+    left: 45%;
+}
+.back{
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    height: 5rem;
+    width: 10rem;
+    font-size: 2rem;
+    background-color: #0b4e37;
+}
+.sort{
+    position:relative;   
+    cursor:pointer;
+    color: #0b4e37;
+    font-size: 1.8rem;
+}
+select{
+    font-size: 2rem;
+    background-color: #5cb85c;
+    color: rgb(255, 255, 255);
+    /* font-weight: bold; */
+    cursor: grab;
+}
+option{
+    background-color: rgb(34, 151, 4);
+}
+.gradient-custom {
+    /* fallback for old browsers */
+    background: #4facfe;
+  
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: -webkit-linear-gradient(to right, rgba(79, 172, 254, 0.5), rgba(0, 242, 254, 0.5));
+  
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: linear-gradient(to right, rgba(79, 172, 254, 0.5), rgba(0, 242, 254, 0.5))
+}
+
+hr{
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
